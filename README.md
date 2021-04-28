@@ -19,7 +19,6 @@
 - [x] Show current account information
 - [ ] Make an order
 - [x] Get URL to modify latest active order
-- [x] List all orders
 
 ## Usage
 
@@ -347,5 +346,92 @@ x-customer-wh: mad1
         }
     },
     "warehouse_code": "mad1"
+}
+```
+
+### Get my favorites products
+
+#### Parameters
+
+- `<regular_type>` = `precision` (what I most buy) or `recall` (I also buy)
+
+```shell
+> http GET "https://tienda.mercadona.es/api/customers/<customer_id>/recommendations/myregulars/<regular_type>/" "Authorization:Bearer <auth_token>"
+
+HTTP/1.1 200 OK
+Allow: GET, HEAD, OPTIONS
+Alt-Svc: clear
+Cache-Control: no-cache
+Cache-Control: no-cache
+Content-Encoding: gzip
+Content-Language: es
+Content-Type: application/json
+Date: Wed, 28 Apr 2021 18:54:41 GMT
+Expires: Wed, 28 Apr 2021 18:54:40 GMT
+Server: nginx
+Strict-Transport-Security: max-age=86400
+Transfer-Encoding: chunked
+Vary: Accept-Encoding
+Vary: Origin
+Via: 1.1 google
+X-Frame-Options: SAMEORIGIN
+X-Request-ID: 119edafcf45f3d941068a2e29fc7c6a0
+X-SRE-header: location_only_api_nocache
+x-customer-pc: <pc>
+x-customer-wh: mad1
+
+{
+    "next_page": null,
+    "results": [
+        {
+            "product": {
+                "badges": {
+                    "is_water": false,
+                    "requires_age_check": false
+                },
+                "categories": [
+                    {
+                        "id": 5,
+                        "level": 0,
+                        "name": "Panadería y pastelería",
+                        "order": 508
+                    }
+                ],
+                "display_name": "Empanada de verduras",
+                "id": "84780",
+                "limit": 999,
+                "packaging": "Pieza",
+                "price_instructions": {
+                    "approx_size": false,
+                    "bulk_price": "5.90",
+                    "bunch_selector": false,
+                    "drained_weight": null,
+                    "increment_bunch_amount": 1.0,
+                    "is_new": false,
+                    "is_pack": false,
+                    "iva": 10,
+                    "min_bunch_amount": 1.0,
+                    "pack_size": null,
+                    "price_decreased": false,
+                    "reference_format": "kg",
+                    "reference_price": "5.90",
+                    "selling_method": 0,
+                    "size_format": "kg",
+                    "total_units": null,
+                    "unit_name": null,
+                    "unit_price": "2.95",
+                    "unit_selector": true,
+                    "unit_size": 0.5
+                },
+                "published": true,
+                "share_url": "https://tienda.mercadona.es/product/84780/empanada-verduras-apto-veganos-pieza",
+                "slug": "empanada-verduras-apto-veganos-pieza",
+                "thumbnail": "https://prod-mercadona.imgix.net/images/a128a58d8a06618683ba674671800dee.jpg?fit=crop&h=300&w=300"
+            },
+            "recommended_quantity": 1,
+            "selling_method": 0
+        },
+        ...
+    ]
 }
 ```
