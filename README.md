@@ -11,11 +11,19 @@
 
 ```
 
+⚠️ EXPERIMENTAL CLI!! THERE COULD BE BUGS OR UNHANDLED USE CASES!! USE AT YOUR OWN RISK ⚠️
+
 ## Features
 
+- [x] Authentication
+- [x] Show current account information
 - [ ] Make an order
-- [ ] Modify last order
-- [ ] List all orders
+- [x] Get URL to modify latest active order
+- [x] List all orders
+
+## Usage
+
+TODO
 
 ## Mercadona API reverse engineering
 
@@ -156,7 +164,7 @@ x-customer-wh: mad1
 }
 ```
 
-## List orders
+## List all orders
 
 ```shell
 $ http GET "https://tienda.mercadona.es/api/customers/<customer_id>/orders/?page=<page_num>" "Authorization:Bearer <auth_token>"
