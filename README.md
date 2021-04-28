@@ -159,8 +159,29 @@ x-customer-wh: mad1
 ## List orders
 
 ```shell
-$ http GET "https://tienda.mercadona.es/api/customers/<customer_id>/orders/?page=1" "Authorization:Bearer <auth_token>"
+$ http GET "https://tienda.mercadona.es/api/customers/<customer_id>/orders/?page=<page_num>" "Authorization:Bearer <auth_token>"
 
+HTTP/1.1 200 OK
+Allow: GET, HEAD, OPTIONS
+Alt-Svc: clear
+Cache-Control: no-cache
+Cache-Control: no-cache
+Content-Encoding: gzip
+Content-Language: es
+Content-Type: application/json
+Date: Wed, 28 Apr 2021 14:42:54 GMT
+Expires: Wed, 28 Apr 2021 14:42:53 GMT
+Server: nginx
+Strict-Transport-Security: max-age=86400
+Transfer-Encoding: chunked
+Vary: Accept-Encoding
+Vary: Origin
+Via: 1.1 google
+X-Frame-Options: SAMEORIGIN
+X-Request-ID: 71e7981780c0b9d8018365676be60750
+X-SRE-header: location_only_api_nocache
+x-customer-pc: <pc>
+x-customer-wh: mad1
 {
     "next_page": null,
     "results": [
