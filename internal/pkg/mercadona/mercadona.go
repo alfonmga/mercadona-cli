@@ -1,15 +1,11 @@
-// TODO: store customer id too
-
 package mercadona
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 
 	"github.com/go-resty/resty/v2"
@@ -18,8 +14,12 @@ import (
 
 const apiBaseEndpoint string = "https://tienda.mercadona.es/api/"
 
-var accessToken string
+var currentAccountAuthData authenticationData
 
+type authenticationData struct {
+	AccessToken string `json:"access_token"`
+	CustomerId  string `json:"customer_id"`
+}
 type mercadonaPagination struct {
 	NextPage string                   `json:"next_page"`
 	Results  []map[string]interface{} `json:"results"`
@@ -27,10 +27,6 @@ type mercadonaPagination struct {
 type MercadonaLogInCredentialsBodyRequest struct {
 	Email    string
 	Password string
-}
-type mercadonaLogInBodyResponse struct {
-	AccessToken string `json:"access_token"`
-	CustomerId  string `json:"customer_id"`
 }
 type MercadonaRecommendedProduct struct {
 	Product MercadonaProduct `mapstructure:"product"`
@@ -44,36 +40,47 @@ type MercadonaOrder struct {
 	StatusUI     string `mapstructure:"status_ui"`
 }
 
-func persistAccessToken(accessToken string) {
+func getMercadonaCLIAuthenticationDataPath() string {
 	dirname, err := os.UserHomeDir()
 	if err != nil {
 		log.Fatalf("persistAccessToken unable to get home dir: %v", err)
 	}
-	ioutil.WriteFile(fmt.Sprintf("%s/.mercadona-cli-access_token", dirname), []byte(accessToken), 0666)
+	return fmt.Sprintf("%s/.mercadona-cli-access_token", dirname)
 }
 
-func loadStoredAccessToken() {
-	dirname, err := os.UserHomeDir()
+func persistAuthentication(authData authenticationData) {
+	data, err := json.Marshal(authData)
 	if err != nil {
-		log.Fatalf("getStoredAccessToken unable to get home dir: %v", err)
-	}
-	accessTokenBlob, err := ioutil.ReadFile(fmt.Sprintf("%s/.mercadona-cli-access_token", dirname))
-	if err != nil {
-		log.Fatalf("getStoredAccessToken unable to read stored access token: %v", err)
+		log.Fatalf("Error unable to marshal authData: %s", err)
 	}
 
-	accessToken = string(accessTokenBlob)
+	err = ioutil.WriteFile(getMercadonaCLIAuthenticationDataPath(), data, 0666)
+	if err != nil {
+		log.Fatalf("Error persisting authData: %s", err)
+	}
+}
+func loadAuthenticationDataFromFile() {
+	data, err := ioutil.ReadFile(getMercadonaCLIAuthenticationDataPath())
+	if err != nil {
+		log.Fatalf("Error reading authentication data file: %s", err)
+	}
+
+	var authData authenticationData
+	err = json.Unmarshal(data, &authData)
+	if err != nil {
+		log.Fatalf("Error unmarshaling authentication data: %s", err)
+	}
+
+	currentAccountAuthData = authData
 }
 
 func assertAccessToken() {
-	if accessToken == "" {
+	if currentAccountAuthData.AccessToken == "" {
 		log.Fatal("Authentication is required")
 	}
 }
 
-func logIn(credentials MercadonaLogInCredentialsBodyRequest) mercadonaLogInBodyResponse {
-	client := &http.Client{}
-
+func logIn(credentials MercadonaLogInCredentialsBodyRequest) authenticationData {
 	logInReqBody, err := json.Marshal(map[string]string{
 		"username": credentials.Email,
 		"password": credentials.Password,
@@ -82,34 +89,29 @@ func logIn(credentials MercadonaLogInCredentialsBodyRequest) mercadonaLogInBodyR
 		log.Fatalf("logInReqBody err: %v", err)
 	}
 
-	logInResp, err := client.Post(fmt.Sprintf("%s%s", apiBaseEndpoint, "auth/tokens/"), "application/json", bytes.NewBuffer(logInReqBody))
+	var logInResponse authenticationData
+
+	client := resty.New()
+	logInResp, err := client.R().SetResult(&logInResponse).SetHeader("Content-Type", "application/json").SetBody(bytes.NewBuffer(logInReqBody)).Post(fmt.Sprintf("%s%s", apiBaseEndpoint, "auth/tokens/"))
 	if err != nil {
 		log.Fatalf("logIn req error: %v", err)
 	}
 
-	defer logInResp.Body.Close()
-	body, err := io.ReadAll(logInResp.Body)
-	if err != nil {
-		log.Fatalf("logInResp body read err: %v", err)
-	}
-
-	if logInResp.StatusCode != 200 {
-		log.Printf("logInResp body: %s", []byte(body))
-		log.Fatalf("logInResp.StatusCode error: %v", logInResp.StatusCode)
-	}
-
-	var logInResponse mercadonaLogInBodyResponse
-	err = json.Unmarshal([]byte(body), &logInResponse)
-	if err != nil {
-		log.Fatalf("logInResponse unmarshal error: %v", err)
+	if logInResp.StatusCode() != 200 {
+		log.Printf("logInResp body: %s", []byte(logInResp.Body()))
+		log.Fatalf("logInResp.StatusCode error: %v", logInResp.StatusCode())
 	}
 
 	return logInResponse
 }
 
+func getAuthenticatedClient() *resty.Client {
+	return resty.New().SetAuthToken(currentAccountAuthData.AccessToken)
+}
+
 func fetchOrders(page string) string {
-	client := resty.New()
-	resp, err := client.R().SetAuthToken(accessToken).Get(fmt.Sprintf("%s%s", apiBaseEndpoint, fmt.Sprintf("customers/%s/orders/?page=%s", "<customer_id>", page)))
+	client := getAuthenticatedClient()
+	resp, err := client.R().Get(fmt.Sprintf("%s%s", apiBaseEndpoint, fmt.Sprintf("customers/%s/orders/?page=%s", currentAccountAuthData.CustomerId, page)))
 	if err != nil {
 		log.Fatalf("ListAllOrders request error: %v", err)
 	}
@@ -123,8 +125,10 @@ func fetchOrders(page string) string {
 }
 
 func fetchRecommendedProducts() []MercadonaRecommendedProduct {
-	client := resty.New()
-	resp, err := client.R().SetAuthToken(accessToken).Get(fmt.Sprintf("%s%s", apiBaseEndpoint, fmt.Sprintf("customers/%s/recommendations/myregulars/precision/", "<customer_id>")))
+	var paginatedResults mercadonaPagination
+
+	client := getAuthenticatedClient()
+	resp, err := client.R().SetResult(&paginatedResults).Get(fmt.Sprintf("%s%s", apiBaseEndpoint, fmt.Sprintf("customers/%s/recommendations/myregulars/precision/", currentAccountAuthData.CustomerId)))
 	if err != nil {
 		log.Fatalf("fetchRegularProducts request error: %v", err)
 	}
@@ -132,12 +136,6 @@ func fetchRecommendedProducts() []MercadonaRecommendedProduct {
 	if resp.StatusCode() != 200 {
 		log.Printf("fetchRegularProducts resp body: %s", string(resp.Body()))
 		log.Fatalf("fetchRegularProducts resp.StatusCode error: %v", resp.StatusCode())
-	}
-
-	var paginatedResults mercadonaPagination
-	err = json.Unmarshal([]byte(resp.Body()), &paginatedResults)
-	if err != nil {
-		log.Fatalf("resp unmarshal error: %v", err)
 	}
 
 	if len(paginatedResults.Results) == 0 {
@@ -170,20 +168,20 @@ func authorizeCheckoutPayment(checkoutId string) {
 }
 
 func init() {
-	loadStoredAccessToken()
+	loadAuthenticationDataFromFile()
 }
 
 func Authenticate(credentials MercadonaLogInCredentialsBodyRequest) {
-	resp := logIn(credentials)
-	persistAccessToken(resp.AccessToken)
-	log.Printf("Now you are authenticated! customer id: %v", resp.CustomerId)
+	authData := logIn(credentials)
+	persistAuthentication(authData)
+	log.Printf("Now you are authenticated! customer id: %v", authData.CustomerId)
 }
 
 func CustomerInfo() {
 	assertAccessToken()
 
-	client := resty.New()
-	resp, err := client.R().SetAuthToken(accessToken).Get(fmt.Sprintf("%s%s", apiBaseEndpoint, fmt.Sprintf("customers/%s/", "<customer_id>")))
+	client := getAuthenticatedClient()
+	resp, err := client.R().Get(fmt.Sprintf("%s%s", apiBaseEndpoint, fmt.Sprintf("customers/%s/", currentAccountAuthData.CustomerId)))
 	if err != nil {
 		log.Fatalf("CustomerInfo request error: %v", err)
 	}
