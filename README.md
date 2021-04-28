@@ -163,7 +163,7 @@ x-customer-wh: mad1
 }
 ```
 
-## List all orders
+### List all orders
 
 ```shell
 $ http GET "https://tienda.mercadona.es/api/customers/<customer_id>/orders/?page=<page_num>" "Authorization:Bearer <auth_token>"
