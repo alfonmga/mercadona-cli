@@ -349,7 +349,7 @@ x-customer-wh: mad1
 }
 ```
 
-### Get my favorites products
+### Get my recommended products
 
 #### Parameters
 
