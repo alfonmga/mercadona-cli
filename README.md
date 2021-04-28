@@ -3,4 +3,5 @@
 
 ## Features
 - [ ] Make order of up to min. order amount (50,00€) using regular products in specific weekday and time slot
-- [ ] List orders
+- [ ] Modify last order
+- [ ] List all orders
