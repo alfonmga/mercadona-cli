@@ -356,7 +356,7 @@ x-customer-wh: mad1
 - `<regular_type>` = `precision` (what I most buy) or `recall` (I also buy)
 
 ```shell
-> http GET "https://tienda.mercadona.es/api/customers/<customer_id>/recommendations/myregulars/<regular_type>/" "Authorization:Bearer <auth_token>"
+$ http GET "https://tienda.mercadona.es/api/customers/<customer_id>/recommendations/myregulars/<regular_type>/" "Authorization:Bearer <auth_token>"
 
 HTTP/1.1 200 OK
 Allow: GET, HEAD, OPTIONS
