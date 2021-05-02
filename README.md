@@ -43,7 +43,7 @@ $ mercadona --help
 Mercadona CLI
 
 Usage:
-  mercadona-cli [command]
+  mercadona [command]
 
 Available Commands:
   auth        Authentication
@@ -53,7 +53,7 @@ Available Commands:
 Flags:
   -h, --help   help for mercadona-cli
 
-Use "mercadona-cli [command] --help" for more information about a command.
+Use "mercadona [command] --help" for more information about a command.
 ```
 
 ## Mercadona API reverse engineering
