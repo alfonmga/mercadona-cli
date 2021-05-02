@@ -13,6 +13,13 @@
 
 ⚠️ EXPERIMENTAL CLI!! THERE COULD BE BUGS OR UNHANDLED USE CASES!! USE AT YOUR OWN RISK ⚠️
 
+## Demo
+
+![demo](demo.png)
+
+- Authenticates into provided account
+- Creates a new order of my most bought products up to min. required order price (50,00€) in given shipping date.
+
 ## Features
 
 - [x] Authentication
@@ -30,7 +37,24 @@ $ make
 
 ## Usage
 
-TODO
+```shell
+$ mercadona-cli --help
+
+Mercadona CLI
+
+Usage:
+  mercadona-cli [command]
+
+Available Commands:
+  auth        Authentication
+  help        Help about any command
+  order       Manage orders
+
+Flags:
+  -h, --help   help for mercadona-cli
+
+Use "mercadona-cli [command] --help" for more information about a command.
+```
 
 ## Mercadona API reverse engineering
 
