@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/alfonmga/mercadona-cli/internal/pkg/mercadona"
 	"github.com/spf13/cobra"
 )
@@ -11,7 +13,8 @@ var infoCmd = &cobra.Command{
 	Short: "Current account information",
 	Long:  `Current account information`,
 	Run: func(cmd *cobra.Command, args []string) {
-		mercadona.CustomerInfo()
+		res := mercadona.CustomerInfo()
+		fmt.Println(res)
 	},
 }
 

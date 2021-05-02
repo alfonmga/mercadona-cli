@@ -6,15 +6,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var newCmd = &cobra.Command{
-	Use:   "new",
-	Short: "Make new order",
-	Long:  `Make new order`,
-	Run: func(cmd *cobra.Command, args []string) {
-		mercadona.MakeNewOrder()
-	},
-}
-
 func init() {
+	var date string
+
+	var newCmd = &cobra.Command{
+		Use:   "new",
+		Short: "Make new order",
+		Long:  `Make new order`,
+		Run: func(cmd *cobra.Command, args []string) {
+			mercadona.MakeNewOrder(date)
+		},
+	}
+
+	newCmd.Flags().StringVarP(&date, "date", "d", "", "")
+	newCmd.MarkFlagRequired("date")
+
 	orderCmd.AddCommand(newCmd)
 }
