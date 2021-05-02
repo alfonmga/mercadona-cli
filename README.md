@@ -20,6 +20,14 @@
 - [x] Make an order
 - [x] Get URL to modify latest active order
 
+## Build
+
+```shell
+$ git clone https://github.com/alfonmga/mercadona-cli
+$ cd mercadona-cli/
+$ make
+```
+
 ## Usage
 
 TODO
