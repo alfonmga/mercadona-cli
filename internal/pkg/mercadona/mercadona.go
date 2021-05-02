@@ -133,9 +133,9 @@ func getAuthenticatedClient() *resty.Client {
 	return resty.New().SetAuthToken(currentAccountAuthData.AccessToken)
 }
 
-func fetchOrders(page string) string {
+func fetchOrders(page string, statusCode string) string {
 	client := getAuthenticatedClient()
-	resp, err := client.R().Get(fmt.Sprintf("%s%s", apiBaseEndpoint, fmt.Sprintf("customers/%s/orders/?page=%s", currentAccountAuthData.CustomerId, page)))
+	resp, err := client.R().Get(fmt.Sprintf("%s%s", apiBaseEndpoint, fmt.Sprintf("customers/%s/orders/?status=%s&page=%s", currentAccountAuthData.CustomerId, statusCode, page)))
 	if err != nil {
 		log.Fatalf("ListAllOrders request error: %v", err)
 	}
@@ -450,13 +450,13 @@ func MakeNewOrder(slotDate string) {
 
 func ListAllOrders(page string) string {
 	assertAccessToken()
-	return fetchOrders(page)
+	return fetchOrders(page, "")
 }
 
 func GetActiveOrderModifyURL() string {
 	assertAccessToken()
 
-	ordersFetchResp := fetchOrders("1")
+	ordersFetchResp := fetchOrders("1", "2")
 
 	var paginatedOrders mercadonaPagination
 	err := json.Unmarshal([]byte(ordersFetchResp), &paginatedOrders)
