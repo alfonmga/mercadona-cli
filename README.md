@@ -38,7 +38,7 @@ $ make
 ## Usage
 
 ```shell
-$ mercadona --help
+$ mercadona-cli --help
 
 Mercadona CLI
 
