@@ -18,7 +18,7 @@
 ![demo](demo.png)
 
 - Authenticates into provided account
-- Creates a new order of my most bought products up to min. required order price (50,00€) in given shipping date.
+- Creates a new order of my most bought products up to min. required order price (50,00€) at given shipping date.
 
 ## Features
 
